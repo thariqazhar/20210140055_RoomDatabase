@@ -1,5 +1,6 @@
 package com.example.repositori.ui.theme.halaman
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -38,7 +39,7 @@ import com.example.repositori.model.PenyediaViewModel
 import com.example.repositori.navigasi.DestinasiNavigasi
 import com.example.repositori.navigasi.SiswaTopAppBar
 
-object DestinasiHome: DestinasiNavigasi {
+object DestinasiHome: DestinasiNavigasi{
     override val route = "home"
     override val titleRes = R.string.app_name
 }
@@ -48,8 +49,9 @@ object DestinasiHome: DestinasiNavigasi {
 fun HomeScreen(
     navigateToItemEntry: () -> Unit,
     modifier: Modifier = Modifier,
+    onDetailClick: (Int)->Unit={},
     viewModel: HomeViewModel = viewModel(factory = PenyediaViewModel.Factory)
-) {
+){
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
     Scaffold(
@@ -72,7 +74,7 @@ fun HomeScreen(
                     contentDescription = stringResource(id = R.string.entry_siswa)
                 )
             }
-        }
+        },
     ) {
             innerPadding ->
         val uiStateSiswa by viewModel.homeUiState.collectAsState()
@@ -80,7 +82,8 @@ fun HomeScreen(
             itemSiswa = uiStateSiswa.listSiswa,
             modifier = Modifier
                 .padding(innerPadding)
-                .fillMaxWidth()
+                .fillMaxWidth(),
+            onsiswaClick = onDetailClick
         )
     }
 }
@@ -88,39 +91,41 @@ fun HomeScreen(
 @Composable
 fun BodyHome(
     itemSiswa : List<Siswa>,
-    modifier: Modifier = Modifier
-) {
+    modifier: Modifier = Modifier,
+    onsiswaClick: (Int)->Unit = {}
+){
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
     ) {
-        if (itemSiswa.isEmpty()) {
+        if(itemSiswa.isEmpty()){
             Text(
                 text = stringResource(id = R.string.deskripsi_no_item),
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.titleLarge,
             )
-        } else {
+        }else{
             ListSiswa(
                 itemSiswa = itemSiswa,
-                modifier = Modifier.padding(horizontal = dimensionResource(id = R.dimen.padding_small))
+                modifier = Modifier.padding(horizontal = dimensionResource(id = R.dimen.padding_small)),
+                onItemClick = {onsiswaClick(it.id)}
             )
         }
     }
 }
-
 @Composable
 fun ListSiswa(
-    itemSiswa: List<Siswa>,
-    modifier: Modifier = Modifier
-) {
-    LazyColumn(modifier = modifier) {
-        items(items = itemSiswa, key = {it.id}) {
+    itemSiswa : List<Siswa>,
+    modifier: Modifier = Modifier,
+    onItemClick:(Siswa) ->Unit
+){
+    LazyColumn(modifier = Modifier){
+        items(items = itemSiswa, key = {it.id}){
                 person ->
             DataSiswa(
                 siswa = person,
                 modifier = Modifier
-                    .padding(dimensionResource(id = R.dimen.padding_small))
+                    .padding(dimensionResource(id = R.dimen.padding_small)).clickable { onItemClick(person) }
             )
         }
     }
@@ -129,7 +134,8 @@ fun ListSiswa(
 @Composable
 fun DataSiswa(
     siswa: Siswa,
-    modifier: Modifier = Modifier) {
+    modifier: Modifier = Modifier
+){
     Card(
         modifier = modifier,
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
@@ -143,11 +149,9 @@ fun DataSiswa(
             ) {
                 Text(
                     text = siswa.nama,
-                    style = MaterialTheme.typography.titleLarge
+                    style = MaterialTheme.typography.titleLarge,
                 )
-
                 Spacer(Modifier.weight(1f))
-
                 Icon(
                     imageVector = Icons.Default.Phone,
                     contentDescription = null,
@@ -159,7 +163,7 @@ fun DataSiswa(
             }
             Text(
                 text = siswa.alamat,
-                style = MaterialTheme.typography.titleMedium
+                style = MaterialTheme.typography.titleMedium,
             )
         }
     }
